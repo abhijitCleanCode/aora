@@ -1,4 +1,13 @@
-import {Account, Avatars, Client, Databases, ID, Query} from 'appwrite';
+import {
+  Account,
+  Avatars,
+  Client,
+  Databases,
+  ID,
+  Query,
+  Storage,
+} from 'appwrite';
+import RNBlobUtil from 'react-native-blob-util';
 
 // hook ups to our appwrite cloud
 export const appwriteConfig = {
@@ -21,6 +30,7 @@ client
 const account = new Account(client);
 const avatars = new Avatars(client);
 const databases = new Databases(client);
+const storage = new Storage(client);
 
 export const createUser = async (email, password, username) => {
   try {
@@ -138,6 +148,107 @@ export const signOut = async () => {
     const session = await account.deleteSession('current');
 
     return session;
+  } catch (error) {
+    console.log(error);
+    throw new Error(error);
+  }
+};
+
+export const getFilePreview = async (fileId, fileType) => {
+  let fileUrl;
+
+  try {
+    if (fileType === 'video') {
+      fileUrl = storage.getFileView(appwriteConfig.storageId, fileId);
+    } else if (fileType === 'image') {
+      fileUrl = storage.getFilePreview(
+        appwriteConfig.storageId,
+        fileId,
+        2000,
+        2000,
+        'top',
+        100,
+      );
+    } else {
+      throw new Error('Invalid file type');
+    }
+
+    if (!fileUrl) throw new Error('Failed to get file preview');
+
+    return fileUrl;
+  } catch (error) {
+    console.log(error);
+    throw new Error(error);
+  }
+};
+export const uploadFile = async (file, fileType) => {
+  if (!file) return null;
+
+  console.log('src :: lib :: appwrite :: uploadFile :: file :: ', file);
+  try {
+    // Resolve content URI to an actual file path
+    const filePath = await RNBlobUtil.fs.stat(file.uri);
+    const resolvedPath = filePath.path;
+
+    // Generate a unique file ID
+    const uniqueId = ID.unique();
+    console.log('Generated unique ID:', uniqueId);
+
+    // Use RNBlobUtil to upload the file as a multipart form data
+    const uploadFileResponse = await RNBlobUtil.fetch(
+      'POST', // Replace with Appwrite's API endpoint for file upload
+      `https://cloud.appwrite.io/v1/storage/buckets/${appwriteConfig.storageId}/files`,
+      {
+        Authorization: `Bearer standard_9a9081fcb74567e29fe89727afa62205f94b7f782bf08a00c814a96621db5d2cbf3f7c6ac959952adf79afc6ecf6c49e4724088e8e9853cbd1819630e56506a766ba1b6ee33828e10d1ab736e74463ce41470bc6a9502792e43ad9dde6be7e549aa28e50981bee51bc730e423fa22c53a303db9ab5ec1ef2f4cc01cf11dc9e0c`, // Replace with your Appwrite API key
+        'Content-Type': 'multipart/form-data',
+        'x-appwrite-project': appwriteConfig.projectId, // Add this if not already present
+      },
+      [
+        {name: 'fileId', data: uniqueId}, // Explicitly pass the fileId
+        {
+          name: 'file',
+          filename: file.name,
+          type: file.type,
+          data: RNBlobUtil.wrap(resolvedPath),
+        },
+      ],
+    );
+
+    const responseJson = JSON.parse(uploadFileResponse.data);
+    console.log('Upload response:', responseJson);
+
+    if (!responseJson.$id) {
+      throw new Error('Failed to upload file: Missing file ID in response.');
+    }
+
+    const fileUrl = await getFilePreview(responseJson.$id, fileType);
+    console.log('Generated file URL:', fileUrl);
+
+    return fileUrl;
+  } catch (error) {
+    // console.error('Upload file error:', error.message, error.stack);
+    throw new Error(error);
+  }
+};
+export const createVideo = async form => {
+  try {
+    // upload the thumbnail and video and return the urls of both at the same time
+    const [thumbnailUrl, videoUrl] = await Promise.all([
+      uploadFile(form.thumbnail, 'image'),
+      uploadFile(form.video, 'video'),
+    ]);
+
+    const newPosts = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.videoCollectionId,
+      ID.unique(),
+      {
+        title: form.title,
+        video: videoUrl,
+        thumbnail: thumbnailUrl,
+        user: getCurrentUser().accountId,
+      },
+    );
   } catch (error) {
     console.log(error);
     throw new Error(error);

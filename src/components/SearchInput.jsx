@@ -12,7 +12,12 @@ const SearchInput = () => {
       />
 
       <TouchableOpacity>
-        <Image source={search} className="w-6 h-6" resizeMode="contain" />
+        <Image
+          source={search}
+          className="w-6 h-6"
+          resizeMode="contain"
+          tintColor="#F3F4F6"
+        />
       </TouchableOpacity>
     </View>
   );

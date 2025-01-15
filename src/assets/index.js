@@ -9,6 +9,7 @@ import eyeHide from './icons/eye-hide.png';
 import options from './icons/options.png';
 import play from './icons/play.png';
 import logout from './icons/signIn.png';
+import upload from './icons/upload.png';
 
 // images
 import cards from './cards.png';
@@ -33,4 +34,5 @@ export {
   options,
   play,
   logout,
+  upload,
 };

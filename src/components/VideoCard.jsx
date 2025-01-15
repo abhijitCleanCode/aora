@@ -11,7 +11,9 @@ const VideoCard = ({
     title,
     thumbnail,
     video,
-    creator: {username, avatar},
+    // user: {username = 'Velvet', avatar},
+    avatar,
+    username = 'Velvet',
   },
 }) => {
   const [play, setPlay] = useState(false);
@@ -22,7 +24,9 @@ const VideoCard = ({
         <View className="flex justify-center items-center flex-row flex-1">
           <View className="w-[46px] h-[46px] rounded-lg border border-secondary flex justify-center items-center p-0.5">
             <Image
-              source={{uri: avatar}}
+              source={{
+                uri: 'https://cloud.appwrite.io/v1/avatars/initials/?name=Velvet%20echoes&project=677f841b001962f1a88b&name=Velvet%20echoes&project=677f841b001962f1a88b',
+              }}
               className="w-full h-full rounded-lg"
               resizemode="cover"
             />
@@ -42,7 +46,12 @@ const VideoCard = ({
           </View>
 
           <View className="pt-2">
-            <Image source={options} className="w-5 h-5" resizemode="contain" />
+            <Image
+              source={options}
+              className="w-5 h-5"
+              resizemode="contain"
+              tintColor="#FF9C01"
+            />
           </View>
         </View>
 
@@ -54,7 +63,9 @@ const VideoCard = ({
             activeOpacity={0.7}
             onPress={() => setPlay(true)}>
             <Image
-              source={{uri: thumbnail}}
+              source={{
+                uri: 'https://cloud.appwrite.io/v1/storage/buckets/677f8d920028434aa4f4/files/6786393a002c0b3d2870/preview/?width=2000&height=2000&gravity=top&quality=100&project=677f841b001962f1a88b&width=2000&height=2000&gravity=top&quality=100&project=677f841b001962f1a88b',
+              }}
               className="w-full h-full mt-3 rounded-lg"
               resizeMode="cover"
             />

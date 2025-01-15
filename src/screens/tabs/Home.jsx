@@ -14,6 +14,8 @@ const Home = () => {
   const {data: latestPosts} = useAppwrite(getLatestPosts);
   const {user, setUser, setIsLogged} = useGlobalContext();
 
+  console.log('posts: ', posts);
+
   const onRefresh = async () => {
     setRefreshing(true);
     await refetch();
@@ -25,7 +27,7 @@ const Home = () => {
       <FlatList
         data={posts}
         keyExtractor={item => item.$id}
-        renderItem={({item}) => <VideoCard video={item} />}
+        renderItem={item => <VideoCard video={item} />}
         ListHeaderComponent={() => (
           <View className="my-6 px-4 space-y-6">
             <View className="justify-between items-start flex-row mb-6">
@@ -54,7 +56,7 @@ const Home = () => {
                 Latest Videos
               </Text>
 
-              <Trending posts={latestPosts ?? []} />
+              {/* <Trending posts={posts ?? []} /> */}
             </View>
           </View>
         )}
